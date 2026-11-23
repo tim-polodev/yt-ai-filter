@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+set -eu
+
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+echo "[pre-push] Running Gitleaks across git history..."
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "Error: gitleaks is not installed. Install with: brew install gitleaks" >&2
+  exit 1
+fi
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+  gitleaks git --redact -v --config .gitleaks.toml
+fi
+
+echo "[pre-push] Running Semgrep security scan..."
+if ! command -v semgrep >/dev/null 2>&1; then
+  echo "Error: semgrep is not installed. Install with: brew install semgrep" >&2
+  exit 1
+fi
+semgrep scan --config .semgrep.yml --config p/javascript --error --exclude dist --exclude background/env-config.js --exclude .env
+
+echo "[pre-push] All credential and vulnerability checks passed."

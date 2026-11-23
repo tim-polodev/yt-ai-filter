@@ -1,0 +1,13 @@
+# Secrets & environment
+.env
+.env.*
+!.env.example
+
+# Build output & generated local config
+dist/
+background/env-config.js
+
+# Dependencies & OS files
+node_modules/
+.DS_Store
+.commandcode/

@@ -1,0 +1,16 @@
+title = "yt-ai-filter Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "commandcode-api-key"
+description = "Command Code API Key"
+regex = '''\buser_[A-Za-z0-9]{40,120}\b'''
+tags = ["key", "commandcode", "secret"]
+
+[[rules]]
+id = "cloudflare-aig-token"
+description = "Cloudflare AI Gateway Authorization Header Token"
+regex = '''(?i)(?:cf-aig-authorization|CF_AIG_AUTH)\s*[:=]\s*["']([A-Za-z0-9_-]{24,})["']'''
+tags = ["key", "cloudflare", "secret"]

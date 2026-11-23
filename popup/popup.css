@@ -1,0 +1,392 @@
+:root {
+  color-scheme: light dark;
+  --brand-color: #ef4444;
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --muted: #475569;
+  --ok-bg: #ecfdf5;
+  --ok-text: #065f46;
+  --err-bg: #fef2f2;
+  --err-text: #991b1b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-color: #f87171;
+    --bg: #0f1115;
+    --surface: #181b22;
+    --border: #2e3440;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --ok-bg: #052e16;
+    --ok-text: #86efac;
+    --err-bg: #450a0a;
+    --err-text: #fca5a5;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 390px;
+  min-height: 440px;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  accent-color: var(--brand-color);
+}
+
+.visually-hidden {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+
+.popup-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+fieldset.card {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+fieldset.card legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.check-row label {
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.check-row input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.range-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.range-header output {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-color);
+}
+
+textarea,
+select,
+input[type="password"],
+input[type="text"],
+input[type="url"] {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 66px;
+}
+
+input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-color);
+  outline-offset: 2px;
+}
+
+input:user-invalid,
+textarea:user-invalid {
+  border-color: #dc2626;
+}
+
+.input-with-action {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.input-with-action input {
+  flex: 1;
+}
+
+.advanced-section {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.advanced-section summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.advanced-body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.btn-chip {
+  font: inherit;
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  flex: 1;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #b91c1c;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--muted);
+}
+
+.btn-compact {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.status-msg {
+  min-height: 20px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: none;
+}
+
+.status-msg.is-ok {
+  display: block;
+  background: var(--ok-bg);
+  color: var(--ok-text);
+}
+
+.status-msg.is-err {
+  display: block;
+  background: var(--err-bg);
+  color: var(--err-text);
+}
+
+.stats-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.stats-grid {
+  display: flex;
+  gap: 14px;
+}
+
+.stats-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-grid strong {
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.stats-grid span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Fallback for older engines lacking accent-color */
+@supports not (accent-color: var(--brand-color)) {
+  .check-row input[type="checkbox"].checkbox-input {
+    position: absolute;
+    clip-path: inset(50%);
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+  }
+
+  .check-row label {
+    position: relative;
+    padding-left: 26px;
+  }
+
+  .check-row input[type="checkbox"] + label span::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+  }
+
+  .check-row input[type="checkbox"]:checked + label span::before {
+    background: var(--brand-color);
+    border-color: var(--brand-color);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--brand-color) var(--progress, 33%), var(--border) var(--progress, 33%));
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--brand-color);
+    margin-top: -5px;
+  }
+}

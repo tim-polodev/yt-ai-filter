@@ -1,0 +1,173 @@
+/* Blurred video card state (thumbnail + title blurred, kept in layout) */
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-thumbnail img,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) yt-thumbnail-view-model img,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .ytCoreImageHost,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-thumbnail-view-model__image,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .shortsLockupViewModelHostThumbnail,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .media-item-thumbnail-container img,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-moving-thumbnail-renderer,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #video-preview,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-video-preview,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) video {
+  filter: blur(22px) brightness(0.65) saturate(0.45) !important;
+  transform: scale(1.08);
+  transition: filter 0.22s ease, transform 0.22s ease;
+}
+
+/* Suppress inline hover previews (both local and YouTube's global ytd-video-preview overlay) */
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-moving-thumbnail-renderer,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #mouseover-overlay,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #hover-overlays,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-video-preview,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #video-preview,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-thumbnail video,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) yt-thumbnail-view-model video,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) yt-thumbnail-overlay-inline-playback-renderer,
+body.yt-ai-filter-hovering-blurred ytd-video-preview,
+body.yt-ai-filter-hovering-blurred #video-preview {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Blur the video title across all YouTube desktop & mobile renderers */
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-ai-filter-title-target,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #video-title,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #video-title-link,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) [class*="lockup-metadata-view-model"][class*="title"],
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) [class*="shortsLockupViewModelHostMetadataTitle"],
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .media-item-headline,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) h3 {
+  filter: blur(7px) !important;
+  -webkit-filter: blur(7px) !important;
+  user-select: none !important;
+  transition: filter 0.22s ease;
+}
+
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) a.yt-ai-filter-title-target,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) span.yt-ai-filter-title-target,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) yt-formatted-string.yt-ai-filter-title-target {
+  display: inline-block !important;
+}
+
+/* Smooth unblur when peeked */
+.yt-ai-filter-blurred.yt-ai-filter-peeked ytd-thumbnail img,
+.yt-ai-filter-blurred.yt-ai-filter-peeked yt-thumbnail-view-model img,
+.yt-ai-filter-blurred.yt-ai-filter-peeked .ytCoreImageHost,
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-title-target,
+.yt-ai-filter-blurred.yt-ai-filter-peeked #video-title,
+.yt-ai-filter-blurred.yt-ai-filter-peeked #video-title-link,
+.yt-ai-filter-blurred.yt-ai-filter-peeked [class*="lockup-metadata-view-model"][class*="title"],
+.yt-ai-filter-blurred.yt-ai-filter-peeked [class*="shortsLockupViewModelHostMetadataTitle"],
+.yt-ai-filter-blurred.yt-ai-filter-peeked .media-item-headline,
+.yt-ai-filter-blurred.yt-ai-filter-peeked h3 {
+  filter: none !important;
+  -webkit-filter: none !important;
+  transform: none;
+  transition: filter 0.22s ease, transform 0.22s ease;
+}
+
+.yt-ai-filter-thumb-host {
+  position: relative !important;
+}
+
+/* Overlay badge showing Jev noul probability, blur reason, and click-to-peek control */
+.yt-ai-filter-badge {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  text-align: center;
+  background: rgba(15, 15, 18, 0.42);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: "YouTube Sans", "Roboto", system-ui, -apple-system, sans-serif;
+  pointer-events: auto;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.yt-ai-filter-badge__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.92);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.yt-ai-filter-badge__reason {
+  max-width: 92%;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.68);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-ai-filter-badge__peek {
+  margin-top: 2px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.yt-ai-filter-badge:hover .yt-ai-filter-badge__peek,
+.yt-ai-filter-badge__peek:focus-visible {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Compact corner pill when the user clicks to peek */
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-badge {
+  inset: 8px auto auto 8px;
+  padding: 0;
+  background: transparent;
+  align-items: flex-start;
+  justify-content: flex-start;
+  border-radius: 999px;
+}
+
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-badge__reason,
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-badge__peek {
+  display: none;
+}
+
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-badge__pill {
+  background: rgba(15, 15, 18, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  padding: 4px 9px;
+}
+
+/* Disable click-to-peek cursor when toggle is off */
+.yt-ai-filter-no-peek .yt-ai-filter-badge {
+  cursor: default;
+}
+
+.yt-ai-filter-no-peek .yt-ai-filter-badge__peek {
+  display: none;
+}

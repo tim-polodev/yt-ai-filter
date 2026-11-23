@@ -1,0 +1,14 @@
+{
+  "name": "yt-ai-filter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome/Edge extension to blur YouTube video thumbnails and titles using TypeSafe Jev via Command Code.",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "scan:secrets": "gitleaks git --redact -v --config .gitleaks.toml",
+    "scan:secrets:staged": "gitleaks git --staged --redact -v --config .gitleaks.toml",
+    "scan:sast": "semgrep scan --config .semgrep.yml --config p/javascript --error --exclude dist --exclude background/env-config.js --exclude .env",
+    "scan": "npm run scan:secrets && npm run scan:sast"
+  }
+}

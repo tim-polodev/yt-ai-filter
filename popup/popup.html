@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube AI Filter (Jev)</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup-shell">
+    <header class="popup-header">
+      <div class="brand">
+        <img src="../icons/icon-48.png" alt="" width="24" height="24">
+        <div>
+          <h1>YouTube AI Filter</h1>
+          <p class="subtitle">Powered by TypeSafe Jev · Command Code</p>
+        </div>
+      </div>
+    </header>
+
+    <form id="filter-form" aria-labelledby="form-heading" novalidate>
+      <h2 id="form-heading" class="visually-hidden">Filter Settings</h2>
+
+      <fieldset class="card">
+        <legend>Filter Behavior</legend>
+
+        <div class="check-row">
+          <input type="checkbox" id="enabled" name="enabled" class="checkbox-input">
+          <label for="enabled"><span>Enable YouTube title blurring</span></label>
+        </div>
+
+        <div class="check-row">
+          <input type="checkbox" id="click-to-peek" name="clickToPeek" class="checkbox-input">
+          <label for="click-to-peek"><span>Click blurred video to peek</span></label>
+        </div>
+
+        <div class="field">
+          <label for="prompt">Block prompt <span aria-hidden="true">*</span></label>
+          <textarea
+            id="prompt"
+            name="prompt"
+            rows="3"
+            required
+            aria-describedby="prompt-help"
+            placeholder="e.g. Block all ai slops, brain rot, bad news about stock markets"
+          ></textarea>
+          <span id="prompt-help" class="hint">Videos matching this rule stay in the list with blurred thumbnail, blurred title, and Jev probability.</span>
+        </div>
+
+        <div class="field">
+          <div class="range-header">
+            <label for="threshold">Strictness threshold (noul)</label>
+            <output id="threshold-output" for="threshold">0.65 (65%)</output>
+          </div>
+          <input
+            type="range"
+            id="threshold"
+            name="threshold"
+            min="0.50"
+            max="0.95"
+            step="0.05"
+            value="0.65"
+            aria-describedby="threshold-help"
+          >
+          <span id="threshold-help" class="hint">Blur videos when Jev noul probability meets or exceeds this score.</span>
+        </div>
+      </fieldset>
+
+      <fieldset class="card">
+        <legend>Command Code Provider</legend>
+
+        <div class="field">
+          <label for="model">AI model</label>
+          <select id="model" name="model">
+            <option value="typesafe/jev">Jev (SystemOne Decision Model — Recommended)</option>
+            <option value="typesafe/jev-1.14.0">Jev 1.14.0 (Pinned SystemOne)</option>
+            <option value="deepseek/deepseek-v4.1-flash">DeepSeek V4.1 Flash (Chat Fallback)</option>
+            <option value="google/gemini-3.8-flash">Gemini 3.8 Flash (Chat Fallback)</option>
+            <option value="gpt-5.4-mini">GPT-5.4 Mini (Chat Fallback)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="api-key">Command Code API key <span aria-hidden="true">*</span></label>
+          <div class="input-with-action">
+            <input
+              type="password"
+              id="api-key"
+              name="apiKey"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              required
+              aria-describedby="api-key-help"
+            >
+            <button
+              type="button"
+              id="toggle-key"
+              class="btn-secondary btn-compact"
+              aria-pressed="false"
+              aria-label="Show API key"
+            >Show</button>
+          </div>
+          <span id="api-key-help" class="hint">Loaded from .env at build time or entered here (stored locally in your browser).</span>
+        </div>
+
+        <details class="advanced-section">
+          <summary>Endpoint &amp; Gateway options</summary>
+          <div class="advanced-body">
+            <div class="field">
+              <label for="base-url">Base URL <span aria-hidden="true">*</span></label>
+              <input
+                type="url"
+                id="base-url"
+                name="baseUrl"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+              >
+              <div class="preset-row">
+                <button type="button" id="preset-direct" class="btn-chip">Direct Command Code</button>
+                <button type="button" id="preset-gateway" class="btn-chip">CF AI Gateway</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="cf-aig-auth">CF AI Gateway auth (optional)</label>
+              <input
+                type="password"
+                id="cf-aig-auth"
+                name="cfAigAuth"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder="Optional cf-aig-authorization header"
+              >
+            </div>
+          </div>
+        </details>
+      </fieldset>
+
+      <div class="action-row">
+        <button type="button" id="test-api-btn" class="btn-secondary">Test Jev API</button>
+        <button type="submit" id="save-btn" class="btn-primary">Save &amp; Apply</button>
+      </div>
+    </form>
+
+    <div id="status-msg" class="status-msg" role="status" aria-live="polite"></div>
+
+    <footer class="stats-footer">
+      <div class="stats-grid">
+        <div><strong id="stat-scanned">0</strong><span>Scanned</span></div>
+        <div><strong id="stat-blurred">0</strong><span>Blurred</span></div>
+        <div><strong id="stat-cached">0</strong><span>Cached</span></div>
+      </div>
+      <button type="button" id="clear-cache-btn" class="btn-secondary btn-compact">Clear Cache &amp; Rescan</button>
+    </footer>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>
