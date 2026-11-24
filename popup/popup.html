@@ -67,6 +67,87 @@
       </fieldset>
 
       <fieldset class="card">
+        <legend>Blurred Video Background</legend>
+
+        <div class="radio-group" role="radiogroup" aria-label="Blurred video background source">
+          <div class="radio-option">
+            <input type="radio" id="bg-mode-none" name="bgMode" value="none" checked>
+            <label for="bg-mode-none">Default blur</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="bg-mode-upload" name="bgMode" value="upload">
+            <label for="bg-mode-upload">Upload GIF / image</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="bg-mode-url" name="bgMode" value="url">
+            <label for="bg-mode-url">Image / GIF URL</label>
+          </div>
+        </div>
+
+        <div id="bg-upload-panel" class="bg-panel" hidden>
+          <div class="field">
+            <label for="bg-file">Choose GIF or image</label>
+            <div id="bg-dropzone" class="bg-dropzone">
+              <input
+                type="file"
+                id="bg-file"
+                name="bgFile"
+                accept="image/gif,image/png,image/jpeg,image/webp,image/avif"
+                aria-describedby="bg-file-help"
+              >
+              <span id="bg-file-name" class="bg-file-name">No file selected</span>
+            </div>
+            <div class="bg-actions-row">
+              <button type="button" id="open-tab-uploader-btn" class="btn-secondary btn-compact">Open in tab to pick file</button>
+              <button type="button" id="clear-bg-btn" class="btn-secondary btn-compact" hidden>Remove</button>
+            </div>
+            <span id="bg-file-help" class="hint">GIF, PNG, JPG, WebP, or AVIF (max 8 MB). Saved locally; drag &amp; drop or paste supported.</span>
+          </div>
+        </div>
+
+        <div id="bg-url-panel" class="bg-panel" hidden>
+          <div class="field">
+            <label for="bg-url">Direct HTTPS image or GIF URL</label>
+            <input
+              type="url"
+              id="bg-url"
+              name="bgUrl"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="https://media.giphy.com/media/.../giphy.gif"
+              aria-describedby="bg-url-help"
+            >
+            <span id="bg-url-help" class="hint">Must be a direct https:// link to a GIF, PNG, JPG, WebP, or AVIF file.</span>
+          </div>
+        </div>
+
+        <div id="bg-preview-panel" class="bg-preview-panel" hidden>
+          <div class="bg-fit-row" role="radiogroup" aria-label="Background image fit">
+            <span class="bg-fit-label">Fit:</span>
+            <div class="radio-option">
+              <input type="radio" id="bg-fit-cover" name="bgFit" value="cover" checked>
+              <label for="bg-fit-cover">Cover</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="bg-fit-contain" name="bgFit" value="contain">
+              <label for="bg-fit-contain">Contain</label>
+            </div>
+          </div>
+          <div id="bg-preview-card" class="bg-preview-card">
+            <img id="bg-preview-img" class="bg-preview-img" alt="Selected blurred video background preview">
+            <div class="bg-preview-scrim" aria-hidden="true"></div>
+            <div class="bg-preview-overlay" aria-hidden="true">
+              <span class="bg-preview-pill">Filtered • Jev 94%</span>
+              <span class="bg-preview-peek">Click to peek</span>
+            </div>
+          </div>
+          <span id="bg-preview-error" class="hint bg-error" role="alert" hidden></span>
+        </div>
+      </fieldset>
+
+      <fieldset class="card">
         <legend>Command Code Provider</legend>
 
         <div class="field">

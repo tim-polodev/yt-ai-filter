@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "Blur YouTube video thumbnails and titles matching your custom prompt using TypeSafe Jev via Command Code.",
   "permissions": [
-    "storage"
+    "storage",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://www.youtube.com/*",

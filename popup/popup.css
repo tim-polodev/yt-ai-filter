@@ -44,6 +44,13 @@ body {
   accent-color: var(--brand-color);
 }
 
+body.is-tab-view {
+  width: auto;
+  max-width: 460px;
+  min-height: auto;
+  margin: 24px auto;
+}
+
 .visually-hidden {
   position: absolute;
   clip-path: inset(50%);
@@ -330,6 +337,163 @@ button {
 .stats-grid span {
   font-size: 11px;
   color: var(--muted);
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.radio-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.radio-option label {
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bg-panel,
+.bg-preview-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bg-panel[hidden],
+.bg-preview-panel[hidden],
+.bg-error[hidden],
+#clear-bg-btn[hidden],
+#open-tab-uploader-btn[hidden] {
+  display: none;
+}
+
+.bg-dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.bg-dropzone.is-dragover {
+  border-color: var(--brand-color);
+  background: color-mix(in srgb, var(--brand-color) 8%, var(--bg));
+}
+
+.bg-dropzone input[type="file"] {
+  width: 100%;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.bg-file-name {
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.bg-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.bg-fit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bg-fit-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.bg-preview-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0f0f12;
+  border: 1px solid var(--border);
+}
+
+.bg-preview-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.bg-preview-img.is-contain {
+  object-fit: contain;
+}
+
+.bg-preview-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 14, 0.18);
+  pointer-events: none;
+}
+
+.bg-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.bg-preview-pill {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.92);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.bg-preview-peek {
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(15, 15, 18, 0.72);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.bg-error {
+  color: var(--err-text);
+  font-weight: 500;
 }
 
 /* Fallback for older engines lacking accent-color */

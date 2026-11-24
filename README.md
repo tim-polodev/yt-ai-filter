@@ -10,6 +10,7 @@ Instead of removing matched videos from the feed, the extension **blurs both the
 
 - **Natural-language filtering**: Enter prompts like `"Block all ai slops, brain rot, bad news about stock markets"`.
 - **Non-destructive blurring**: Blurs thumbnails, inline hover previews, and titles while keeping page layout intact.
+- **Customizable blurred video backgrounds**: Replace the default blurred overlay with any uploaded GIF or image (up to 8 MB, stored locally) or direct `https://` GIF/image URL, with Cover/Contain fit, live preview, and instant updates across YouTube tabs.
 - **Transparent scoring & Click-to-Peek**: Displays Jev's calibrated `noul` probability (e.g. `Filtered • Jev 94% (noul 0.94)`) and lets you click a blurred video to temporarily peek or re-blur.
 - **Prompt-scoped caching**: Caches evaluated `(model, prompt, title)` pairs in `chrome.storage.local` so scrolling or revisiting pages avoids duplicate API calls.
 - **Flexible provider settings**: Defaults to `typesafe/jev` on `https://api.commandcode.ai/provider/v1/systemone`, with optional support for Cloudflare AI Gateway and Command Code chat models (`/chat/completions`).

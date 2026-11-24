@@ -42,6 +42,7 @@
   const SCAN_DEBOUNCE_MS = 150;
   const DOM_BATCH_SIZE = 20;
   const EVAL_BATCH_SIZE = 15;
+  const DATA_IMAGE_RE = /^data:image\/(?:gif|png|jpeg|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/;
 
   let currentSettings = {
     enabled: true,
@@ -50,10 +51,192 @@
     clickToPeek: true
   };
 
+  let activeBgState = {
+    active: false,
+    type: 'none',
+    rawSrc: '',
+    renderSrc: '',
+    blobUrl: '',
+    fit: 'cover'
+  };
+
   let scanTimer = null;
   let isScanning = false;
   let pendingRescan = false;
   let nextCardId = 1;
+
+  function resolveBackgroundConfig(bg) {
+    if (!bg || typeof bg !== 'object') {
+      return { active: false, type: 'none', rawSrc: '', fit: 'cover' };
+    }
+    const fit = bg.fit === 'contain' ? 'contain' : 'cover';
+    const src = typeof bg.src === 'string' ? bg.src.trim() : '';
+    if (!src) {
+      return { active: false, type: 'none', rawSrc: '', fit: 'cover' };
+    }
+
+    if (bg.type === 'upload') {
+      return DATA_IMAGE_RE.test(src)
+        ? { active: true, type: 'upload', rawSrc: src, fit }
+        : { active: false, type: 'none', rawSrc: '', fit: 'cover' };
+    }
+
+    if (bg.type === 'url') {
+      try {
+        const parsed = new URL(src);
+        if (parsed.protocol !== 'https:') {
+          return { active: false, type: 'none', rawSrc: '', fit: 'cover' };
+        }
+        return { active: true, type: 'url', rawSrc: parsed.href, fit };
+      } catch {
+        return { active: false, type: 'none', rawSrc: '', fit: 'cover' };
+      }
+    }
+
+    return { active: false, type: 'none', rawSrc: '', fit: 'cover' };
+  }
+
+  function dataUrlToBlobUrl(dataUrl) {
+    try {
+      const commaIdx = dataUrl.indexOf(',');
+      if (commaIdx === -1) return '';
+      const header = dataUrl.slice(0, commaIdx);
+      const mimeMatch = /^data:(image\/(?:gif|png|jpeg|webp|avif));base64$/.exec(header);
+      if (!mimeMatch) return '';
+
+      const binary = atob(dataUrl.slice(commaIdx + 1));
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: mimeMatch[1] });
+      return URL.createObjectURL(blob);
+    } catch {
+      return '';
+    }
+  }
+
+  function syncBadgeBackground(badge, { recoverBroken = false } = {}) {
+    if (!badge) return;
+
+    if (!activeBgState.active || !activeBgState.renderSrc) {
+      badge.classList.remove('yt-ai-filter-badge--custom-bg');
+      badge.querySelector(':scope > .yt-ai-filter-badge__bg')?.remove();
+      badge.querySelector(':scope > .yt-ai-filter-badge__scrim')?.remove();
+      return;
+    }
+
+    badge.classList.add('yt-ai-filter-badge--custom-bg');
+
+    let bgImg = badge.querySelector(':scope > img.yt-ai-filter-badge__bg');
+    if (!bgImg) {
+      bgImg = document.createElement('img');
+      bgImg.className = 'yt-ai-filter-badge__bg';
+      bgImg.alt = '';
+      bgImg.setAttribute('aria-hidden', 'true');
+      bgImg.decoding = 'async';
+      bgImg.referrerPolicy = 'no-referrer';
+      bgImg.addEventListener('error', () => {
+        if (
+          activeBgState.type === 'upload' &&
+          activeBgState.rawSrc &&
+          bgImg.getAttribute('src') !== activeBgState.rawSrc
+        ) {
+          bgImg.setAttribute('src', activeBgState.rawSrc);
+        }
+      });
+      badge.prepend(bgImg);
+    }
+
+    let scrim = badge.querySelector(':scope > .yt-ai-filter-badge__scrim');
+    if (!scrim) {
+      scrim = document.createElement('div');
+      scrim.className = 'yt-ai-filter-badge__scrim';
+      scrim.setAttribute('aria-hidden', 'true');
+      bgImg.after(scrim);
+    }
+
+    bgImg.classList.toggle('yt-ai-filter-badge__bg--contain', activeBgState.fit === 'contain');
+
+    const currentSrc = bgImg.getAttribute('src') || '';
+    if (currentSrc !== activeBgState.renderSrc) {
+      bgImg.setAttribute('src', activeBgState.renderSrc);
+    } else if (recoverBroken && bgImg.complete && bgImg.naturalWidth === 0) {
+      bgImg.removeAttribute('src');
+      bgImg.setAttribute('src', activeBgState.renderSrc);
+    }
+  }
+
+  function syncAllBadgesBackground(options = {}) {
+    for (const badge of document.querySelectorAll('.yt-ai-filter-badge')) {
+      syncBadgeBackground(badge, options);
+    }
+  }
+
+  function applyCustomBackground(bg, options = {}) {
+    const root = document.documentElement;
+    if (root) {
+      root.classList.remove('yt-ai-filter-has-custom-bg');
+      root.style.removeProperty('--yt-ai-filter-bg-image');
+      root.style.removeProperty('--yt-ai-filter-bg-fit');
+    }
+
+    const next = resolveBackgroundConfig(bg);
+
+    if (
+      next.active === activeBgState.active &&
+      next.type === activeBgState.type &&
+      next.rawSrc === activeBgState.rawSrc
+    ) {
+      activeBgState.fit = next.fit;
+      if (options.recoverBroken && activeBgState.type === 'upload' && activeBgState.rawSrc) {
+        const hasBroken = Array.from(
+          document.querySelectorAll('.yt-ai-filter-badge > img.yt-ai-filter-badge__bg')
+        ).some((img) => img.complete && img.naturalWidth === 0);
+        if (hasBroken) {
+          const oldBlobUrl = activeBgState.blobUrl;
+          const nextBlobUrl = dataUrlToBlobUrl(activeBgState.rawSrc);
+          activeBgState.blobUrl = nextBlobUrl;
+          activeBgState.renderSrc = nextBlobUrl || activeBgState.rawSrc;
+          syncAllBadgesBackground(options);
+          if (oldBlobUrl && oldBlobUrl !== nextBlobUrl) {
+            URL.revokeObjectURL(oldBlobUrl);
+          }
+          return;
+        }
+      }
+      syncAllBadgesBackground(options);
+      return;
+    }
+
+    const nextBlobUrl = next.type === 'upload' ? dataUrlToBlobUrl(next.rawSrc) : '';
+    const nextRenderSrc = next.active ? (nextBlobUrl || next.rawSrc) : '';
+    const oldBlobUrl = activeBgState.blobUrl;
+
+    activeBgState = {
+      active: next.active,
+      type: next.type,
+      rawSrc: next.rawSrc,
+      renderSrc: nextRenderSrc,
+      blobUrl: nextBlobUrl,
+      fit: next.fit
+    };
+
+    syncAllBadgesBackground(options);
+
+    if (oldBlobUrl && oldBlobUrl !== nextBlobUrl) {
+      URL.revokeObjectURL(oldBlobUrl);
+    }
+  }
+
+  async function loadCustomBackground(options = {}) {
+    try {
+      const { customBackground } = await chrome.storage.local.get('customBackground');
+      applyCustomBackground(customBackground, options);
+    } catch {
+      // Ignore transient storage errors
+    }
+  }
 
   function getVideoCards() {
     const candidates = Array.from(document.querySelectorAll(CARD_SELECTOR));
@@ -180,6 +363,8 @@
         `Video blurred. Jev noul probability ${pct} percent. ${formatPromptReason(reason)}. ${currentSettings.clickToPeek ? 'Click to peek.' : ''}`
       );
     }
+
+    syncBadgeBackground(badge);
   }
 
   function clearCardFilter(card) {
@@ -437,12 +622,14 @@
         if (message.settings) {
           currentSettings = message.settings;
         }
+        await loadCustomBackground();
         await reEvaluateFromLocalScores();
         sendResponse({ ok: true });
       } else if (message?.type === 'RESCAN_REQUIRED') {
         if (message.settings) {
           currentSettings = message.settings;
         }
+        await loadCustomBackground();
         resetAllCardsAndRescan();
         sendResponse({ ok: true });
       } else {
@@ -450,6 +637,35 @@
       }
     })();
     return true;
+  });
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes.customBackground) {
+      applyCustomBackground(changes.customBackground.newValue);
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      loadCustomBackground({ recoverBroken: true });
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    loadCustomBackground({ recoverBroken: true });
+  });
+
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      loadCustomBackground({ recoverBroken: true });
+    }
+  });
+
+  window.addEventListener('pagehide', (e) => {
+    if (!e.persisted && activeBgState.blobUrl) {
+      URL.revokeObjectURL(activeBgState.blobUrl);
+      activeBgState.blobUrl = '';
+    }
   });
 
   const observer = new MutationObserver((mutations) => {
@@ -463,8 +679,15 @@
 
   observer.observe(document.body, { childList: true, subtree: true });
 
-  window.addEventListener('yt-navigate-finish', scheduleScan);
-  window.addEventListener('yt-page-data-updated', scheduleScan);
+  window.addEventListener('yt-navigate-finish', () => {
+    loadCustomBackground();
+    scheduleScan();
+  });
+  window.addEventListener('yt-page-data-updated', () => {
+    loadCustomBackground();
+    scheduleScan();
+  });
 
+  loadCustomBackground();
   scheduleScan();
 })();

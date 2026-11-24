@@ -23,6 +23,13 @@ const DEFAULT_STATS = {
   lastError: ''
 };
 
+const DEFAULT_CUSTOM_BACKGROUND = {
+  type: 'none',
+  src: '',
+  fit: 'cover',
+  fileName: ''
+};
+
 const MAX_CACHE_ENTRIES = 1500;
 const API_BATCH_SIZE = 15;
 
@@ -367,12 +374,15 @@ async function handleMessage(message, sender) {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-  const existing = await chrome.storage.local.get(['settings', 'stats']);
+  const existing = await chrome.storage.local.get(['settings', 'stats', 'customBackground']);
   if (!existing.settings) {
     await chrome.storage.local.set({ settings: DEFAULT_SETTINGS });
   }
   if (!existing.stats) {
     await chrome.storage.local.set({ stats: DEFAULT_STATS });
+  }
+  if (!existing.customBackground) {
+    await chrome.storage.local.set({ customBackground: DEFAULT_CUSTOM_BACKGROUND });
   }
 });
 

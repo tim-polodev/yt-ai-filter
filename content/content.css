@@ -1,10 +1,10 @@
 /* Blurred video card state (thumbnail + title blurred, kept in layout) */
-.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-thumbnail img,
-.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) yt-thumbnail-view-model img,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-thumbnail img:not(.yt-ai-filter-badge__bg),
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) yt-thumbnail-view-model img:not(.yt-ai-filter-badge__bg),
 .yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .ytCoreImageHost,
 .yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-thumbnail-view-model__image,
 .yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .shortsLockupViewModelHostThumbnail,
-.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .media-item-thumbnail-container img,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .media-item-thumbnail-container img:not(.yt-ai-filter-badge__bg),
 .yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-moving-thumbnail-renderer,
 .yt-ai-filter-blurred:not(.yt-ai-filter-peeked) #video-preview,
 .yt-ai-filter-blurred:not(.yt-ai-filter-peeked) ytd-video-preview,
@@ -51,8 +51,8 @@ body.yt-ai-filter-hovering-blurred #video-preview {
 }
 
 /* Smooth unblur when peeked */
-.yt-ai-filter-blurred.yt-ai-filter-peeked ytd-thumbnail img,
-.yt-ai-filter-blurred.yt-ai-filter-peeked yt-thumbnail-view-model img,
+.yt-ai-filter-blurred.yt-ai-filter-peeked ytd-thumbnail img:not(.yt-ai-filter-badge__bg),
+.yt-ai-filter-blurred.yt-ai-filter-peeked yt-thumbnail-view-model img:not(.yt-ai-filter-badge__bg),
 .yt-ai-filter-blurred.yt-ai-filter-peeked .ytCoreImageHost,
 .yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-title-target,
 .yt-ai-filter-blurred.yt-ai-filter-peeked #video-title,
@@ -85,11 +85,19 @@ body.yt-ai-filter-hovering-blurred #video-preview {
   text-align: center;
   background: rgba(15, 15, 18, 0.42);
   border-radius: 12px;
+  overflow: hidden;
   color: #ffffff;
   font-family: "YouTube Sans", "Roboto", system-ui, -apple-system, sans-serif;
   pointer-events: auto;
   cursor: pointer;
   box-sizing: border-box;
+}
+
+.yt-ai-filter-badge__pill,
+.yt-ai-filter-badge__reason,
+.yt-ai-filter-badge__peek {
+  position: relative;
+  z-index: 2;
 }
 
 .yt-ai-filter-badge__pill {
@@ -146,6 +154,7 @@ body.yt-ai-filter-hovering-blurred #video-preview {
   inset: 8px auto auto 8px;
   padding: 0;
   background: transparent;
+  overflow: visible;
   align-items: flex-start;
   justify-content: flex-start;
   border-radius: 999px;
@@ -170,4 +179,65 @@ body.yt-ai-filter-hovering-blurred #video-preview {
 
 .yt-ai-filter-no-peek .yt-ai-filter-badge__peek {
   display: none;
+}
+
+/* Custom GIF/image background on blurred video overlays */
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-ai-filter-badge.yt-ai-filter-badge--custom-bg {
+  background: rgba(15, 15, 18, 0.85);
+  overflow: hidden;
+}
+
+.yt-ai-filter-badge > img.yt-ai-filter-badge__bg {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  z-index: 0 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: none !important;
+}
+
+.yt-ai-filter-badge > img.yt-ai-filter-badge__bg.yt-ai-filter-badge__bg--contain {
+  object-fit: contain !important;
+}
+
+.yt-ai-filter-badge > .yt-ai-filter-badge__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(10, 10, 14, 0.18);
+  pointer-events: none;
+}
+
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-badge > img.yt-ai-filter-badge__bg,
+.yt-ai-filter-blurred.yt-ai-filter-peeked .yt-ai-filter-badge > .yt-ai-filter-badge__scrim {
+  display: none !important;
+}
+
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-ai-filter-badge--custom-bg .yt-ai-filter-badge__reason {
+  background: rgba(0, 0, 0, 0.76);
+}
+
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-ai-filter-badge--custom-bg .yt-ai-filter-badge__peek {
+  background: rgba(15, 15, 18, 0.72);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-ai-filter-badge--custom-bg:hover .yt-ai-filter-badge__peek,
+.yt-ai-filter-blurred:not(.yt-ai-filter-peeked) .yt-ai-filter-badge--custom-bg .yt-ai-filter-badge__peek:focus-visible {
+  background: rgba(15, 15, 18, 0.88);
+  border-color: rgba(255, 255, 255, 0.85);
 }
