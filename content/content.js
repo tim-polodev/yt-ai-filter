@@ -64,6 +64,65 @@
   let isScanning = false;
   let pendingRescan = false;
   let nextCardId = 1;
+  let isContextInvalidated = false;
+  let observer = null;
+
+  function isExtensionContextValid() {
+    try {
+      return Boolean(typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id);
+    } catch {
+      return false;
+    }
+  }
+
+  function isContextInvalidatedError(err) {
+    const msg = String(err?.message || err || '');
+    return !isExtensionContextValid() || /Extension context invalidated/i.test(msg);
+  }
+
+  function handleContextInvalidated() {
+    if (isContextInvalidated) return;
+    isContextInvalidated = true;
+    pendingRescan = false;
+
+    if (scanTimer !== null) {
+      clearTimeout(scanTimer);
+      scanTimer = null;
+    }
+
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('focus', handleWindowFocus);
+    window.removeEventListener('pageshow', handlePageShow);
+    window.removeEventListener('yt-navigate-finish', handleYouTubeNavigate);
+    window.removeEventListener('yt-page-data-updated', handleYouTubePageDataUpdated);
+  }
+
+  function ensureContextValid() {
+    if (isContextInvalidated) return false;
+    if (!isExtensionContextValid()) {
+      handleContextInvalidated();
+      return false;
+    }
+    return true;
+  }
+
+  async function safeSendMessage(message) {
+    if (!ensureContextValid()) return null;
+    try {
+      return await chrome.runtime.sendMessage(message);
+    } catch (err) {
+      if (isContextInvalidatedError(err)) {
+        handleContextInvalidated();
+        return null;
+      }
+      throw err;
+    }
+  }
 
   function resolveBackgroundConfig(bg) {
     if (!bg || typeof bg !== 'object') {
@@ -230,10 +289,16 @@
   }
 
   async function loadCustomBackground(options = {}) {
+    if (!ensureContextValid()) return;
     try {
       const { customBackground } = await chrome.storage.local.get('customBackground');
-      applyCustomBackground(customBackground, options);
-    } catch {
+      if (!isContextInvalidated) {
+        applyCustomBackground(customBackground, options);
+      }
+    } catch (err) {
+      if (isContextInvalidatedError(err)) {
+        handleContextInvalidated();
+      }
       // Ignore transient storage errors
     }
   }
@@ -417,9 +482,10 @@
   }
 
   async function updateBadgeCount() {
+    if (!ensureContextValid()) return;
     const count = document.querySelectorAll('.yt-ai-filter-blurred').length;
     try {
-      await chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count });
+      await safeSendMessage({ type: 'UPDATE_BADGE', count });
     } catch {
       // Ignore transient extension context disconnect
     }
@@ -446,6 +512,7 @@
   }
 
   async function scanAndFilter() {
+    if (!ensureContextValid()) return;
     if (isScanning) {
       pendingRescan = true;
       return;
@@ -453,7 +520,8 @@
     isScanning = true;
 
     try {
-      const stateResp = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
+      const stateResp = await safeSendMessage({ type: 'GET_SETTINGS' });
+      if (isContextInvalidated) return;
       if (stateResp?.settings) {
         currentSettings = stateResp.settings;
       }
@@ -489,11 +557,13 @@
       }
 
       for (let i = 0; i < toEvaluate.length; i += EVAL_BATCH_SIZE) {
+        if (!ensureContextValid()) return;
         const chunk = toEvaluate.slice(i, i + EVAL_BATCH_SIZE);
-        const resp = await chrome.runtime.sendMessage({
+        const resp = await safeSendMessage({
           type: 'EVALUATE_TITLES',
           items: chunk
         });
+        if (isContextInvalidated) return;
 
         if (resp?.settings) {
           currentSettings = resp.settings;
@@ -519,24 +589,33 @@
         }
       }
     } catch (err) {
-      console.warn('[yt-ai-filter] Scan error:', err?.message || err);
+      if (isContextInvalidatedError(err)) {
+        handleContextInvalidated();
+      } else {
+        console.warn('[yt-ai-filter] Scan error:', err?.message || err);
+      }
     } finally {
       isScanning = false;
-      if (pendingRescan) {
+      if (pendingRescan && !isContextInvalidated) {
         pendingRescan = false;
         scheduleScan();
+      } else {
+        pendingRescan = false;
       }
     }
   }
 
   function scheduleScan() {
+    if (!ensureContextValid()) return;
     clearTimeout(scanTimer);
     scanTimer = setTimeout(() => {
+      if (!ensureContextValid()) return;
       scanAndFilter();
     }, SCAN_DEBOUNCE_MS);
   }
 
   function resetAllCardsAndRescan() {
+    if (!ensureContextValid()) return;
     for (const card of getVideoCards()) {
       delete card.dataset.ytAiTitle;
       delete card.dataset.ytAiNoul;
@@ -616,50 +695,74 @@
     true
   );
 
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+      loadCustomBackground({ recoverBroken: true });
+    }
+  }
+
+  function handleWindowFocus() {
+    loadCustomBackground({ recoverBroken: true });
+  }
+
+  function handlePageShow(e) {
+    if (e.persisted) {
+      loadCustomBackground({ recoverBroken: true });
+    }
+  }
+
+  function handleYouTubeNavigate() {
+    loadCustomBackground();
+    scheduleScan();
+  }
+
+  function handleYouTubePageDataUpdated() {
+    loadCustomBackground();
+    scheduleScan();
+  }
+
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (!ensureContextValid()) return false;
     (async () => {
-      if (message?.type === 'SETTINGS_UPDATED') {
-        if (message.settings) {
-          currentSettings = message.settings;
+      try {
+        if (message?.type === 'SETTINGS_UPDATED') {
+          if (message.settings) {
+            currentSettings = message.settings;
+          }
+          await loadCustomBackground();
+          await reEvaluateFromLocalScores();
+          if (isExtensionContextValid()) sendResponse({ ok: true });
+        } else if (message?.type === 'RESCAN_REQUIRED') {
+          if (message.settings) {
+            currentSettings = message.settings;
+          }
+          await loadCustomBackground();
+          resetAllCardsAndRescan();
+          if (isExtensionContextValid()) sendResponse({ ok: true });
+        } else {
+          if (isExtensionContextValid()) sendResponse({ ok: false });
         }
-        await loadCustomBackground();
-        await reEvaluateFromLocalScores();
-        sendResponse({ ok: true });
-      } else if (message?.type === 'RESCAN_REQUIRED') {
-        if (message.settings) {
-          currentSettings = message.settings;
+      } catch (err) {
+        if (isContextInvalidatedError(err)) {
+          handleContextInvalidated();
+        } else if (isExtensionContextValid()) {
+          sendResponse({ ok: false, error: err?.message || String(err) });
         }
-        await loadCustomBackground();
-        resetAllCardsAndRescan();
-        sendResponse({ ok: true });
-      } else {
-        sendResponse({ ok: false });
       }
     })();
     return true;
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (!ensureContextValid()) return;
     if (areaName === 'local' && changes.customBackground) {
       applyCustomBackground(changes.customBackground.newValue);
     }
   });
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      loadCustomBackground({ recoverBroken: true });
-    }
-  });
-
-  window.addEventListener('focus', () => {
-    loadCustomBackground({ recoverBroken: true });
-  });
-
-  window.addEventListener('pageshow', (e) => {
-    if (e.persisted) {
-      loadCustomBackground({ recoverBroken: true });
-    }
-  });
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('focus', handleWindowFocus);
+  window.addEventListener('pageshow', handlePageShow);
 
   window.addEventListener('pagehide', (e) => {
     if (!e.persisted && activeBgState.blobUrl) {
@@ -668,7 +771,8 @@
     }
   });
 
-  const observer = new MutationObserver((mutations) => {
+  observer = new MutationObserver((mutations) => {
+    if (!ensureContextValid()) return;
     for (const mutation of mutations) {
       if (mutation.addedNodes.length > 0) {
         scheduleScan();
@@ -677,17 +781,15 @@
     }
   });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  if (document.body && ensureContextValid()) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
 
-  window.addEventListener('yt-navigate-finish', () => {
+  window.addEventListener('yt-navigate-finish', handleYouTubeNavigate);
+  window.addEventListener('yt-page-data-updated', handleYouTubePageDataUpdated);
+
+  if (ensureContextValid()) {
     loadCustomBackground();
     scheduleScan();
-  });
-  window.addEventListener('yt-page-data-updated', () => {
-    loadCustomBackground();
-    scheduleScan();
-  });
-
-  loadCustomBackground();
-  scheduleScan();
+  }
 })();
